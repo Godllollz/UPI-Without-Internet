@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>⚡ Core-Mesh Unified Telemetry Suite — UPI Offline Pipeline</title>
+
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+    <script>
+        async function loadVpas() {
+
+    const accounts = await fetch('/api/accounts')
+        .then(r => r.json());
+
+    const sender = document.getElementById('senderVpa');
+    const receiver = document.getElementById('receiverVpa');
+
+    sender.innerHTML = '';
+    receiver.innerHTML = '';
+
+    accounts.forEach(account => {
+
+        const s = document.createElement('option');
+        s.value = account.vpa;
+        s.textContent = account.vpa;
+        sender.appendChild(s);
+
+        const r = document.createElement('option');
+        r.value = account.vpa;
+        r.textContent = account.vpa;
+        receiver.appendChild(r);
+
+    });
+}
+
+        tailwind.config = {
+
+        theme: {
+
+        extend: {
+
+        colors: {
+
+        panel: '#111827',
+
+        surface: '#1f2937',
+
+        accent: '#3b82f6',
+
+        success: '#10b981',
+
+        terminal: '#05070a',
+
+        matrix: '#10b981'
+
+        }
+
+        }
+
+        }
+
+        }
+
+    </script>
+
+    <style>
+
+        /* Smooth micro-interactions */
+
+        * { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        body { background: radial-gradient(circle at top left, #0b0f19 0%, #111827 100%); }
+
+        .glass-panel {
+
+        background: rgba(31, 41, 55, 0.45);
+
+        backdrop-filter: blur(16px);
+
+        border: 1px solid rgba(255, 255, 255, 0.05);
+
+        }
+
+        /* Custom scrollbar for analytics telemetry look */
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+
+        ::-webkit-scrollbar-track { background: #05070a; }
+
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+
+
+        /* Shifting logic load bar animation */
+
+        @keyframes shift { 0% { left: -30%; } 100% { left: 100%; } }
+
+        .animate-shift::after {
+
+        content: ''; position: absolute; top: 0; bottom: 0; width: 30%;
+
+        background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+
+        animation: shift 1.5s infinite linear;
+
+        }
+
+    </style>
+
+</head>
+
+<body class="text-gray-200 min-h-screen p-4 md:p-8 font-sans antialiased">
+
+
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+
+
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-gray-800 gap-4">
+
+        <div>
+
+            <div class="flex items-center gap-3">
+
+                <div class="h-3 w-3 bg-emerald-500 rounded-full animate-pulse"></div>
+
+                <h1 class="text-2xl font-black tracking-tight text-white uppercase">
+
+                    UPI Offline Mesh <span class="text-blue-500 font-light text-xl">/ Telemetry Core</span>
+
+                </h1>
+
+            </div>
+
+            <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-mono">
+
+                System Status: Operational // Asynchronous Node Topography Relay
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <button onclick="resetMesh()" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-red-400 border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 rounded-md bg-transparent">
+
+                <i class="fa-solid fa-triangle-exclamation mr-2"></i>Reset Infrastructure Cache
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <section class="glass-panel p-6 rounded-xl shadow-2xl relative overflow-hidden">
+
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+
+
+
+        <div class="flex items-center gap-2 mb-4">
+
+            <i class="fa-solid fa-user-plus text-emerald-400"></i>
+
+            <h2 class="text-sm font-bold tracking-wider text-white uppercase">Provision New Network Node User</h2>
+
+        </div>
+
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Holder Name</label>
+
+                <input type="text" id="newName" placeholder="Name" class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">New VPA Address</label>
+
+                <input type="text" id="newVpa" placeholder="john@demo" class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Initial Balance (INR)</label>
+
+                <div class="relative">
+
+                    <span class="absolute left-3 top-2 text-sm text-gray-400">₹</span>
+
+                    <input type="number" id="newBalance" placeholder="1000" class="w-full bg-surface border border-gray-700 rounded-md pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Secure MPIN</label>
+
+                <input type="password" id="newMpin" placeholder="MPIN" maxlength="4" class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white tracking-widest focus:outline-none focus:border-emerald-500">
+
+            </div>
+
+        </div>
+
+
+
+        <button onclick="createUser()" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs tracking-widest uppercase rounded-lg shadow-md hover:shadow-emerald-500/10 active:scale-[0.99] flex items-center justify-center gap-2">
+
+            <i class="fa-solid fa-user-check"></i> Register User to Core Ledger
+
+        </button>
+
+    </section>
+
+
+
+    <section class="glass-panel p-6 rounded-xl shadow-2xl relative overflow-hidden">
+
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500"></div>
+
+
+
+        <div class="flex items-center gap-2 mb-4">
+
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+
+            <h2 class="text-sm font-bold tracking-wider text-white uppercase">Automated Pipeline Orchestrator</h2>
+
+        </div>
+
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Sender VPA Origin</label>
+
+                <select id="senderVpa"
+                        class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </select>
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Target Beneficiary VPA</label>
+
+                <select id="receiverVpa"
+                        class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </select>
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Transaction Value (INR)</label>
+
+                <div class="relative">
+
+                    <span class="absolute left-3 top-2 text-sm text-gray-400">₹</span>
+
+                    <input type="number" id="amount" value="500" class="w-full bg-surface border border-gray-700 rounded-md pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <label class="block text-[11px] uppercase tracking-wider text-gray-400 font-mono mb-1">Cryptographic MPIN</label>
+
+                <input type="password" id="pin" value="1234" maxlength="4" class="w-full bg-surface border border-gray-700 rounded-md px-3 py-2 text-sm text-white tracking-widest focus:outline-none focus:border-blue-500">
+
+            </div>
+
+        </div>
+
+
+
+        <div class="relative">
+
+            <button id="masterTxBtn" onclick="executeFullOneClickTransaction()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm tracking-widest uppercase rounded-lg shadow-lg hover:shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3">
+
+                <i class="fa-solid fa-satellite-dish animate-bounce"></i> Execute One-Click Automated Settlement Loop
+
+            </button>
+
+            <div id="loaderBar" class="hidden absolute left-0 right-0 -bottom-2 h-1 bg-gray-800 rounded-full overflow-hidden animate-shift"></div>
+
+        </div>
+
+
+
+        <div class="flex items-center gap-6 mt-4 pt-4 border-t border-gray-800 text-[11px] text-gray-400 font-mono">
+
+            <span class="text-gray-500">Isolated Fallback Steps:</span>
+
+            <button onclick="sendPacket()" class="hover:text-blue-400 bg-transparent p-0 border-none font-mono text-[11px] normal-case tracking-normal shadow-none"><i class="fa-solid fa-file-shield mr-1"></i>[1] Inject</button>
+
+            <button onclick="gossip()" class="hover:text-blue-400 bg-transparent p-0 border-none font-mono text-[11px] normal-case tracking-normal shadow-none"><i class="fa-solid fa-circle-nodes mr-1"></i>[2] Gossip</button>
+
+            <button onclick="flushBridges()" class="hover:text-blue-400 bg-transparent p-0 border-none font-mono text-[11px] normal-case tracking-normal shadow-none"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>[3] Gateway Flush</button>
+
+        </div>
+
+    </section>
+
+
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+
+
+        <div class="glass-panel p-6 rounded-xl lg:col-span-2">
+
+            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
+
+                <h2 class="text-sm font-bold tracking-wider uppercase text-white flex items-center gap-2">
+
+                    <i class="fa-solid fa-network-wired text-blue-400"></i> Active Peer-to-Peer Topography
+
+                </h2>
+
+                <span class="text-xs text-gray-500 font-mono" id="deviceCount">Loading mesh nodes...</span>
+
+            </div>
+
+            <div id="devices" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[320px] overflow-y-auto pr-1">
+
+            </div>
+
+        </div>
+
+
+
+        <div class="glass-panel p-6 rounded-xl">
+
+            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
+
+                <h2 class="text-sm font-bold tracking-wider uppercase text-white flex items-center gap-2">
+
+                    <i class="fa-solid fa-vault text-emerald-400"></i> Core Banking Ledger
+
+                </h2>
+
+            </div>
+
+            <div class="overflow-x-auto">
+
+                <table id="accounts-table" class="w-full text-left font-mono text-xs">
+
+                    <thead>
+
+                    <tr class="text-gray-500 border-b border-gray-800">
+
+                        <th class="pb-2 font-semibold">VPA ID</th>
+
+                        <th class="pb-2 font-semibold text-right">LIQUIDITY BALANCE</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-800/50">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <p class="text-[10px] text-gray-500 font-mono mt-4 pt-3 border-t border-gray-800" id="cacheInfo"></p>
+
+        </div>
+
+    </div>
+
+
+
+    <section class="glass-panel p-6 rounded-xl shadow-xl">
+
+        <div class="flex items-center gap-2 mb-4 border-b border-gray-800 pb-3">
+
+            <i class="fa-solid fa-receipt text-indigo-400"></i>
+
+            <h2 class="text-sm font-bold tracking-wider uppercase text-white">Central Cryptographic Settlement Ledger</h2>
+
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table id="tx-table" class="w-full text-left text-xs font-mono">
+
+                <thead>
+
+                <tr class="text-gray-500 uppercase tracking-wider text-[10px] border-b border-gray-800">
+
+                    <th class="pb-3 font-medium">Tx Hash ID</th>
+
+                    <th class="pb-3 font-medium">Origin Address</th>
+
+                    <th class="pb-3 font-medium">Destination Address</th>
+
+                    <th class="pb-3 font-medium">Value Payload</th>
+
+                    <th class="pb-3 font-medium">Execution Status</th>
+
+                    <th class="pb-3 font-medium">Relay Path</th>
+
+                    <th class="pb-3 font-medium text-right">Timestamp</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody class="divide-y divide-gray-800/60">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="glass-panel p-6 rounded-xl shadow-xl">
+
+        <div class="flex items-center gap-2 mb-3">
+
+            <i class="fa-solid fa-terminal text-emerald-400 animate-pulse"></i>
+
+            <h2 class="text-sm font-bold tracking-wider uppercase text-white">Central System Log Stream</h2>
+
+        </div>
+
+        <div id="log" class="w-full bg-terminal border border-gray-800 rounded-lg p-4 font-mono text-xs text-matrix space-y-1 h-44 overflow-y-auto shadow-inner">
+
+        </div>
+
+    </section>
+
+</div>
+
+
+
+<script>
+
+    // Utilities for production telemetry handling
+
+    function log(msg) {
+
+    const el = document.getElementById('log');
+
+    const entry = document.createElement('div');
+
+    entry.className = "hover:bg-gray-900/40 py-[2px] transition-colors";
+
+    entry.innerHTML = `<span class="text-gray-600">[${new Date().toLocaleTimeString()}]</span> <span class="text-emerald-400 font-semibold">&gt;&gt;</span> ${msg}`;
+
+    el.insertBefore(entry, el.firstChild);
+
+    }
+
+
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+
+
+    async function refresh() {
+
+    try {
+
+    // Fetch Mesh Topology Architecture state
+
+    const m = await fetch('/api/mesh/state').then(r => r.json());
+
+    document.getElementById('deviceCount').innerText = `${m.devices.length} Nodes Online`;
+
+
+
+    const devicesDiv = document.getElementById('devices');
+
+    devicesDiv.innerHTML = m.devices.map(d => `
+
+    <div class="p-4 rounded-lg flex flex-col justify-between border ${
+
+    d.hasInternet
+
+    ? 'border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40'
+
+    : 'border-gray-800 bg-gray-900/40 hover:border-gray-700'
+
+    }">
+
+    <div class="flex justify-between items-start">
+
+    <div>
+
+    <span class="text-xs font-bold text-white block font-mono"><i class="fa-solid fa-mobile-screen-button text-gray-500 mr-1.5"></i>${d.deviceId}</span>
+
+    <span class="text-[10px] text-gray-400 font-mono tracking-tighter">Queue Size: <b class="text-gray-200">${d.packetCount} dynamic payloads</b></span>
+
+    </div>
+
+    <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider font-mono ${
+
+    d.hasInternet
+
+    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+
+    : 'bg-gray-800 text-gray-400 border border-gray-700'
+
+    }">
+
+    ${d.hasInternet ? '<i class="fa-solid fa-wifi mr-1"></i>4G Gateway' : '<i class="fa-solid fa-ban mr-1"></i>Offline'}
+
+    </span>
+
+    </div>
+
+    <div class="mt-3 flex flex-wrap gap-1 max-h-[44px] overflow-y-auto">
+
+    ${d.packetIds.map(id => `<span class="text-[9px] bg-black/40 text-gray-400 px-1.5 py-0.5 rounded border border-gray-800 font-mono font-light">${id.substring(0,8)}...</span>`).join('')}
+
+    </div>
+
+    </div>
+
+    `).join('');
+
+
+
+    document.getElementById('cacheInfo').innerHTML = `<i class="fa-solid fa-shield-halved text-blue-400 mr-1.5"></i>Idempotency Cache Keys Secured: <span class="text-white">${m.idempotencyCacheSize}</span>`;
+
+
+
+    // Fetch Financial Accounts Ledger
+
+    const accs = await fetch('/api/accounts').then(r => r.json());
+    const sender = document.getElementById('senderVpa');
+const receiver = document.getElementById('receiverVpa');
+
+if (sender.options.length !== accs.length) {
+
+    sender.innerHTML = '';
+    receiver.innerHTML = '';
+
+    accs.forEach(a => {
+
+        sender.innerHTML +=
+            `<option value="${a.vpa}">${a.vpa}</option>`;
+
+        receiver.innerHTML +=
+            `<option value="${a.vpa}">${a.vpa}</option>`;
+
+    });
+}
+
+    document.querySelector('#accounts-table tbody').innerHTML = accs.map(a => `
+
+    <tr class="hover:bg-gray-800/20">
+
+    <td class="py-2 text-blue-400 font-semibold">${a.vpa}</td>
+
+    <td class="py-2 text-right text-emerald-400 font-bold">₹${parseFloat(a.balance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+
+    </tr>
+
+    `).join('');
+
+
+
+    // Fetch System Transaction Core Chains
+
+    const txs = await fetch('/api/transactions').then(r => r.json());
+
+    document.querySelector('#tx-table tbody').innerHTML = txs.map(t => {
+
+    let statusClass = "text-gray-400 bg-gray-800";
+
+    if(t.status === 'SETTLED') statusClass = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20";
+
+    if(t.status === 'REJECTED' || t.status === 'INVALID') statusClass = "text-red-400 bg-red-500/10 border border-red-500/20";
+
+    if(t.status === 'DUPLICATE_DROPPED') statusClass = "text-amber-400 bg-amber-500/10 border border-amber-500/20";
+
+
+
+    return `
+
+    <tr class="hover:bg-gray-800/30">
+
+    <td class="py-3 text-gray-400 font-light text-[11px]">${t.id.substring(0,12)}...</td>
+
+    <td class="py-3 font-semibold text-white">${t.senderVpa}</td>
+
+    <td class="py-3 font-semibold text-white">${t.receiverVpa}</td>
+
+    <td class="py-3 text-emerald-400 font-bold">₹${parseFloat(t.amount).toFixed(2)}</td>
+
+    <td class="py-3"><span class="text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${statusClass}">${t.status}</span></td>
+
+    <td class="py-3 text-gray-400 text-[11px]"><i class="fa-solid fa-route mr-1 text-gray-600"></i>${t.bridgeNodeId || 'None'} (${t.hopCount} hops)</td>
+
+    <td class="py-3 text-right text-gray-500 text-[10px]">${new Date(t.settledAt).toLocaleTimeString()}</td>
+
+    </tr>
+
+    `;
+
+    }).join('');
+
+    } catch (err) {
+
+    console.error("Telemetry Refresh Fail:", err);
+
+    }
+
+    }
+
+
+
+    /* ==========================================
+
+    NEW FUNCTION: CREATE USER DISPATCHER
+
+    ========================================== */
+
+    async function createUser() {
+
+    try {
+
+    log(`<b class="text-emerald-400">USER PROVISIONING:</b> Registering node telemetry...`);
+
+    const response = await fetch('/api/users', {
+
+    method: 'POST',
+
+    headers: {
+
+    'Content-Type': 'application/json'
+
+    },
+
+    body: JSON.stringify({
+
+    holderName: document.getElementById('newName').value,
+
+    vpa: document.getElementById('newVpa').value,
+
+    balance: document.getElementById('newBalance').value,
+
+    mpin: document.getElementById('newMpin').value
+
+    })
+
+    });
+
+
+
+    if (response.ok) {
+    alert("User Registered Successfully ✅");
+    log("User Registered Successfully");
+} else {
+    const errorText = await response.text();
+    alert(errorText);
+    log(errorText);
+}
+
+
+
+    // Clean out text inputs
+
+    document.getElementById('newName').value = '';
+
+    document.getElementById('newVpa').value = '';
+
+    document.getElementById('newBalance').value = '';
+
+    document.getElementById('newMpin').value = '';
+
+
+
+    refresh();
+
+    } catch (e) {
+
+    log(`<span class="text-red-400 font-bold">PROVISIONING ERROR:</span> Failed to push user node: ${e.message}`);
+
+    }
+
+    }
+
+
+
+    /* ==========================================
+
+    ONE-CLICK AUTOMATED DISPATCH SEQUENCE
+
+    ========================================== */
+
+    async function executeFullOneClickTransaction() {
+
+    const masterBtn = document.getElementById('masterTxBtn');
+
+    const loaderBar = document.getElementById('loaderBar');
+
+
+
+    // Lock Controls
+
+    masterBtn.disabled = true;
+
+    loaderBar.classList.remove('hidden');
+
+
+
+    try {
+
+    log(`<b class="text-blue-400">INITIATING PIPELINE:</b> Launching multi-stage synchronous ledger settlement...`);
+
+
+
+    // STAGE 1: INJECT PAYLOAD
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> STAGE 1/3: Encoding Symmetric Mesh Payload...`;
+
+    const body = {
+
+    senderVpa: document.getElementById('senderVpa').value,
+
+    receiverVpa: document.getElementById('receiverVpa').value,
+
+    amount: parseFloat(document.getElementById('amount').value),
+
+    pin: document.getElementById('pin').value,
+
+    ttl: 5,
+
+    startDevice: 'phone-alice'
+
+    };
+
+
+
+    const r1 = await fetch('/api/demo/send', {
+
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+
+    body: JSON.stringify(body)
+
+    }).then(r => r.json());
+
+
+
+    log(`Packet <span class="text-white bg-gray-800 px-1 rounded">${r1.packetId.substring(0,8)}</span> encrypted and staged onto network storage.`);
+
+    await refresh();
+
+    await sleep(750);
+
+
+
+    // STAGE 2: AD-HOC TOPOLOGY GOSSIP RELAY
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> STAGE 2/3: Broadcasting Ad-Hoc Gossip Clusters...`;
+
+    const r2 = await fetch('/api/mesh/gossip', {method: 'POST'}).then(r => r.json());
+
+    log(`Topology Router calculated paths. Completed <span class="text-amber-400">${r2.transfers} hops</span> through mesh clusters.`);
+
+    await refresh();
+
+    await sleep(750);
+
+
+
+    // STAGE 3: GATEWAY UPLINK LEDGER SYNC
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> STAGE 3/3: Committing Broadcast to Bank Core Ledger...`;
+
+    const r3 = await fetch('/api/mesh/flush', {method: 'POST'}).then(r => r.json());
+
+    log(`Gateway pipeline flushed. <span class="text-emerald-400">${r3.uploadsAttempted} edge transactions</span> pushed down central banking ledger pipelines.`);
+
+
+
+    r3.results.forEach(res => {
+
+    log(` &rarr; Relay Node [${res.bridgeNode}] finalized Packet [${res.packetId.substring(0,8)}] &bull; Resolution State: <b class="text-white">${res.outcome}</b>`);
+
+    });
+
+
+
+    await refresh();
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Pipeline Settlement Flow Executed!`;
+
+    await sleep(1500);
+
+
+
+    } catch (e) {
+
+    log(`<span class="text-red-400 font-bold">FATAL CORE EXCEPTION:</span> Infrastructure sync broken: ${e.message}`);
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Cluster Execution Error`;
+
+    await sleep(2000);
+
+    } finally {
+
+    masterBtn.disabled = false;
+
+    masterBtn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Execute One-Click Automated Settlement Loop`;
+
+    loaderBar.classList.add('hidden');
+
+    }
+
+    }
+
+
+
+    /* Fallbacks for individual debugging */
+
+    async function sendPacket() {
+
+    const body = {
+
+    senderVpa: document.getElementById('senderVpa').value,
+
+    receiverVpa: document.getElementById('receiverVpa').value,
+
+    amount: parseFloat(document.getElementById('amount').value),
+
+    pin: document.getElementById('pin').value,
+
+    ttl: 5,
+
+    startDevice: 'phone-alice'
+
+    };
+
+    const r = await fetch('/api/demo/send', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) }).then(r => r.json());
+
+    log(`Manual Dispatch Intercepted. Staged Packet: ${r.packetId.substring(0,8)}`);
+
+    refresh();
+
+    }
+
+
+
+    async function gossip() {
+
+    const r = await fetch('/api/mesh/gossip', {method: 'POST'}).then(r => r.json());
+
+    log(`Manual Gossip trigger completed: ${r.transfers} route actions.`);
+
+    refresh();
+
+    }
+
+
+
+    async function flushBridges() {
+
+    const r = await fetch('/api/mesh/flush', {method: 'POST'}).then(r => r.json());
+
+    log(`Manual Bridge Gateway Sync executed.`);
+
+    refresh();
+
+    }
+
+
+
+    async function resetMesh() {
+
+    await fetch('/api/mesh/reset', {method: 'POST'});
+
+    log('System Environment Variables initialized to defaults.');
+
+    refresh();
+
+    }
+
+
+
+    // Global runtime execution hooks
+
+   // Global runtime execution hooks
+
+loadVpas();
+refresh();
+setInterval(refresh, 4000);
+
+</script>
+
+</body>
+
+</html>
+alert
