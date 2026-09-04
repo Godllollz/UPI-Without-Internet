@@ -42,6 +42,17 @@ public class SettlementService {
         Account sender = accounts.findById(instruction.getSenderVpa())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Unknown sender VPA: " + instruction.getSenderVpa()));
+        // Prevent self-transfer
+        if (java.util.Objects.equals(
+                instruction.getSenderVpa(),
+                instruction.getReceiverVpa())) {
+
+            log.warn("Rejected self-transfer from {} to {}",
+                    instruction.getSenderVpa(),
+                    instruction.getReceiverVpa());
+
+            return recordRejected(instruction, packetHash, bridgeNodeId, hopCount);
+        }
 
         // Added just before the MPIN validation
         System.out.println("Sender VPA: " + sender.getVpa());
