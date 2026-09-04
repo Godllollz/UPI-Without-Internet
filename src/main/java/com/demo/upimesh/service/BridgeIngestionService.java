@@ -69,9 +69,22 @@ public class BridgeIngestionService {
             }
 
             // ---- Settle ----
-            Transaction tx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
-            return IngestResult.settled(packetHash, tx);
+            // ---- Settle ----
+            Transaction tx = settlement.settle(
+                    instruction,
+                    packetHash,
+                    bridgeNodeId,
+                    hopCount
+            );
 
+            if (tx.getStatus() == Transaction.Status.REJECTED) {
+                return IngestResult.rejected(
+                        packetHash,
+                        tx
+                );
+            }
+
+            return IngestResult.settled(packetHash, tx);
         } catch (Exception e) {
             log.error("Ingestion error: {}", e.getMessage(), e);
             return IngestResult.invalid("?", "internal_error: " + e.getMessage());
@@ -81,6 +94,14 @@ public class BridgeIngestionService {
     public record IngestResult(String outcome, String packetHash, String reason, Long transactionId) {
         public static IngestResult settled(String hash, Transaction tx) {
             return new IngestResult("SETTLED", hash, null, tx.getId());
+        }
+        public static IngestResult rejected(String hash, Transaction tx) {
+            return new IngestResult(
+                    "REJECTED",
+                    hash,
+                    "transaction_rejected",
+                    tx.getId()
+            );
         }
         public static IngestResult duplicate(String hash) {
             return new IngestResult("DUPLICATE_DROPPED", hash, null, null);
